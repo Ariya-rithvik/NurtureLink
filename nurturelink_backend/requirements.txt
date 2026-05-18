@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
+pillow
+torch
+torchvision
+transformers>=5.8.1
+accelerate
+librosa
+soundfile
+pytest

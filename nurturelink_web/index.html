@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NurtureLink</title>
+    <!-- WebGazer (UMD) — provides window.webgazer. The brown.edu CDN hosts
+         the companion face-mesh model files at sibling paths, so we use that
+         instead of jsdelivr which returns 404 for those assets. -->
+    <script src="https://webgazer.cs.brown.edu/webgazer.js" defer></script>
+    <!-- MediaPipe Hands (UMD) — provides window.Hands for real-time
+         21-point hand-landmark detection at 30fps in the browser. -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/hands.js"
+      defer
+    ></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,69 @@
+# =========== NurtureLink — repo-wide ignores ===========
+
+# Old dead Flutter app (we rewrote as React/web — left only because it was
+# file-locked at the time). Do not commit.
+nurturelink_app/
+
+# Claude Code session / worktree internals
+.claude/
+
+# Plan files / scratch
+*.plan.md
+
+# ---------------- nurturelink_web (React + Vite) ----------------
+nurturelink_web/node_modules/
+nurturelink_web/dist/
+nurturelink_web/build/
+nurturelink_web/.vite/
+nurturelink_web/coverage/
+nurturelink_web/*.local
+nurturelink_web/.DS_Store
+nurturelink_web/vite.log
+
+# ---------------- nurturelink_backend (FastAPI + Python) ----------------
+# Heavy
+nurturelink_backend/.venv/
+nurturelink_backend/.models/
+nurturelink_backend/.offload/
+nurturelink_backend/.smoke/
+nurturelink_backend/.pytest_cache/
+nurturelink_backend/__pycache__/
+nurturelink_backend/donateacry.zip
+nurturelink_backend/donateacry-corpus-master/
+
+# Generated audio / test artifacts
+nurturelink_backend/generated_audio/
+nurturelink_backend/test_outputs/
+nurturelink_backend/*.mp3
+nurturelink_backend/test_*.wav
+nurturelink_backend/test_thumbs_up.png
+
+# Logs
+*.log
+**/*.log
+nurturelink_backend/uvicorn.err.log
+nurturelink_backend/uvicorn.out.log
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# Env files / secrets (none committed, but defensive)
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# Misc
+.tmp/
+.temp/

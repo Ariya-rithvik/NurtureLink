@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.smoke/
+.models/
+.offload/
+gemma_smoke_*.log
+gemma_download_*.log
+*.pyc
+*.pyo
+.env

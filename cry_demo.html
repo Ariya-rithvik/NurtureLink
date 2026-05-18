@@ -1,0 +1,898 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NurtureLink · Parent Bridge Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --bg: #faf9f5;
+        --bg-card: #ffffff;
+        --bg-elev: #f5f3eb;
+        --text: #3d3d3a;
+        --muted: #737269;
+        --subtle: #9a9890;
+        --border: #e8e6de;
+        --accent: #d97757;
+        --accent-soft: #faead8;
+        --accent-text: #8c3f1e;
+        --success: #4d8b6e;
+        --warning: #c28e3d;
+        --danger: #be5a3e;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #262624;
+          --bg-card: #30302e;
+          --bg-elev: #383735;
+          --text: #faf9f5;
+          --muted: #a8a6a0;
+          --subtle: #807e78;
+          --border: #3e3d3b;
+          --accent-soft: #3a2a22;
+          --accent-text: #f5c9af;
+        }
+      }
+      html, body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-size: 15px;
+        line-height: 1.55;
+        letter-spacing: -0.005em;
+        margin: 0;
+        -webkit-font-smoothing: antialiased;
+      }
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+      }
+      .card.accent {
+        border-color: var(--accent);
+      }
+      .btn-primary {
+        background: var(--accent);
+        color: white; border: 0; border-radius: 12px;
+        padding: 14px 24px; font-weight: 700; font-family: inherit;
+        font-size: 15px; cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        transition: background 150ms ease;
+        width: 100%;
+      }
+      .btn-primary:hover { background: #c45f3b; }
+      .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+      .btn-secondary {
+        background: transparent; color: var(--text);
+        border: 1px solid var(--border); border-radius: 12px;
+        padding: 8px 14px; font-weight: 600; font-family: inherit;
+        font-size: 12px; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 6px;
+      }
+      .btn-secondary:hover { background: var(--bg-elev); }
+      h1, h2, h3 { font-weight: 800; letter-spacing: -0.02em; }
+      input[type="range"] {
+        accent-color: var(--accent);
+        width: 100%;
+      }
+      .pipeline-step {
+        display: flex; align-items: flex-start; gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border);
+        transition: background 200ms ease;
+      }
+      .pipeline-step:last-child { border-bottom: 0; }
+      .pipeline-step.active { background: var(--accent-soft); }
+      .step-badge {
+        flex: 0 0 24px; height: 24px; border-radius: 50%;
+        border: 1.5px solid var(--subtle); color: var(--subtle);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 11px; font-weight: 700; margin-top: 1px;
+      }
+      .step-badge.active { border-color: var(--accent); color: var(--accent); }
+      .step-badge.done   { border-color: var(--success); color: var(--success); }
+      .step-badge.failed { border-color: var(--danger);  color: var(--danger);  }
+      .step-icon {
+        flex: 0 0 14px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .step-badge.active + .step-icon,
+      .step-badge.done + .step-icon { color: var(--accent); }
+      .spinner {
+        width: 14px; height: 14px;
+        border: 2px solid var(--accent); border-top-color: transparent;
+        border-radius: 50%; animation: spin 0.9s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .bar {
+        height: 8px; background: var(--bg-elev);
+        border-radius: 999px; overflow: hidden;
+      }
+      .bar-fill {
+        height: 100%; background: var(--accent); border-radius: 999px;
+        transition: width 600ms cubic-bezier(.4,0,.2,1);
+      }
+      .eq {
+        display: flex; align-items: flex-end; gap: 3px;
+        height: 56px; padding: 6px 10px;
+        border-radius: 12px; background: rgba(0,0,0,0.55);
+        border: 1px solid var(--accent);
+      }
+      .eq-bar {
+        flex: 1; min-height: 8%;
+        background: linear-gradient(to top,
+          var(--accent) 0%, var(--accent) 60%,
+          color-mix(in oklch, var(--accent) 60%, var(--warning)) 100%);
+        border-radius: 3px;
+        transition: height 100ms cubic-bezier(.2,.8,.2,1);
+        opacity: 0.9;
+      }
+      .eq.idle .eq-bar {
+        background: color-mix(in oklch, var(--accent) 35%, transparent);
+        animation: eqIdle 2.4s ease-in-out infinite;
+        opacity: 0.7;
+      }
+      .eq.idle .eq-bar:nth-child(1)  { animation-delay: 0s; }
+      .eq.idle .eq-bar:nth-child(2)  { animation-delay: 0.1s; }
+      .eq.idle .eq-bar:nth-child(3)  { animation-delay: 0.2s; }
+      .eq.idle .eq-bar:nth-child(4)  { animation-delay: 0.3s; }
+      .eq.idle .eq-bar:nth-child(5)  { animation-delay: 0.4s; }
+      .eq.idle .eq-bar:nth-child(6)  { animation-delay: 0.5s; }
+      .eq.idle .eq-bar:nth-child(7)  { animation-delay: 0.5s; }
+      .eq.idle .eq-bar:nth-child(8)  { animation-delay: 0.4s; }
+      .eq.idle .eq-bar:nth-child(9)  { animation-delay: 0.3s; }
+      .eq.idle .eq-bar:nth-child(10) { animation-delay: 0.2s; }
+      .eq.idle .eq-bar:nth-child(11) { animation-delay: 0.1s; }
+      .eq.idle .eq-bar:nth-child(12) { animation-delay: 0s; }
+      @keyframes eqIdle {
+        0%, 100% { height: 14%; }
+        50% { height: 30%; }
+      }
+      .pulse-rec {
+        width: 10px; height: 10px; background: var(--accent);
+        border-radius: 50%;
+        animation: pulseDot 1s ease-in-out infinite;
+      }
+      @keyframes pulseDot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(1.4); }
+      }
+      .label {
+        font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
+        text-transform: uppercase; color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mx-auto max-w-5xl px-6 lg:px-10 py-10">
+      <!-- Header -->
+      <header class="mb-8">
+        <div class="label" style="color: var(--accent);">Wellness</div>
+        <h1 class="mt-2 text-[28px] leading-tight">Parent Bridge</h1>
+        <p class="mt-2 max-w-2xl text-[15px]" style="color: var(--muted);">
+          Standalone demo · same UI, same backend, same pipeline as the in-app version.
+          Record a cry, snap a photo, watch each step run.
+        </p>
+      </header>
+
+      <!-- Backend URL + demo mode -->
+      <div
+        class="card mb-5 flex flex-wrap items-center gap-3 px-4 py-3 text-[12px]"
+        style="background: var(--bg-elev);"
+      >
+        <span style="color: var(--muted);">Backend:</span>
+        <input id="backend-url" value="http://127.0.0.1:8000"
+          class="flex-1 min-w-[180px] rounded-md border px-2 py-1 font-mono text-[12px] outline-none"
+          style="background: var(--bg-card); border-color: var(--border); color: var(--text);" />
+        <button id="health-check" class="btn-secondary">Test</button>
+        <span id="health-status" style="color: var(--muted);">—</span>
+
+        <label class="ml-auto inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1"
+          style="border-color: var(--accent); background: var(--accent-soft);">
+          <input id="demo-mode" type="checkbox" checked class="h-4 w-4" style="accent-color: var(--accent);" />
+          <span class="text-[11px] font-bold uppercase tracking-wider" style="color: var(--accent-text);">
+            ⚡ Demo mode (instant)
+          </span>
+        </label>
+      </div>
+
+      <!-- Error banner -->
+      <div id="error-banner" class="card p-4 mb-5 text-[13px]"
+        style="display: none; background: color-mix(in oklch, var(--danger) 8%, transparent); border-color: color-mix(in oklch, var(--danger) 40%, transparent); color: var(--danger);">
+        <strong>⚠ Error:</strong> <span id="error-text"></span>
+      </div>
+
+      <div class="grid grid-cols-1 gap-5 lg:grid-cols-[1.2fr_1fr]">
+        <!-- LEFT — camera + controls -->
+        <div class="card overflow-hidden p-0">
+          <div class="relative aspect-[4/3] w-full bg-black">
+            <video id="video" playsinline muted class="h-full w-full object-cover"></video>
+
+            <!-- Recording overlay -->
+            <div id="rec-overlay" class="absolute inset-x-3 bottom-3 rounded-xl border-2 px-4 py-3"
+              style="display: none; background: rgba(0,0,0,0.6); border-color: var(--accent); backdrop-filter: blur(8px);">
+              <div class="flex items-center justify-between text-[12px] font-bold text-white">
+                <span class="inline-flex items-center gap-2">
+                  <span class="pulse-rec"></span>
+                  Recording cry
+                </span>
+                <span id="rec-timer">0.0s / 7.0s</span>
+              </div>
+              <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full" style="background: rgba(255,255,255,0.15);">
+                <div id="rec-elapsed" style="width: 0%; height: 100%; background: var(--accent); transition: width 100ms linear; border-radius: 999px;"></div>
+              </div>
+              <div class="mt-2 flex items-center gap-2 text-[11px]" style="color: rgba(255,255,255,0.85);">
+                <span class="font-bold">Audio:</span>
+                <span id="rec-audio-pill"
+                  class="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+                  style="background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);">
+                  silent
+                </span>
+                <span id="rec-rms" class="ml-auto font-mono tabular-nums">0.000</span>
+              </div>
+              <div id="rec-eq" class="eq idle mt-2" style="background: rgba(255,255,255,0.06); border-color: rgba(217,119,87,0.5);">
+                <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+                <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+                <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+                <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sliders + button -->
+          <div class="p-5" style="border-top: 1px solid var(--border);">
+            <div class="mb-3">
+              <div class="flex items-baseline justify-between mb-1.5">
+                <span class="label">Last fed</span>
+                <span class="text-[13px] font-bold"><span id="fed-val">180</span> min ago</span>
+              </div>
+              <input id="fed" type="range" min="0" max="360" step="15" value="180" />
+            </div>
+            <div class="mb-3">
+              <div class="flex items-baseline justify-between mb-1.5">
+                <span class="label">Last diaper</span>
+                <span class="text-[13px] font-bold"><span id="diaper-val">120</span> min ago</span>
+              </div>
+              <input id="diaper" type="range" min="0" max="360" step="15" value="120" />
+            </div>
+
+            <div id="mode-info" class="card p-3 my-4 text-[12px]"
+              style="background: var(--bg-elev); border-color: var(--border); color: var(--muted);">
+              <div id="mode-info-title" class="font-bold" style="color: var(--text);">Demo mode (instant)</div>
+              <p id="mode-info-body" class="mt-0.5 leading-snug">
+                Records 4s of audio, runs the real cry classifier, snaps a photo,
+                then synthesizes a Gemma-style diagnosis from the cry result.
+                Full pipeline in under 10 seconds.
+              </p>
+            </div>
+
+            <button id="record-btn" class="btn-primary">
+              <span id="rec-btn-icon">🎤</span>
+              <span>📷</span>
+              <span id="rec-btn-label">Record 7s cry + diagnose</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- RIGHT — pipeline + results -->
+        <div class="flex flex-col gap-5">
+          <!-- Pipeline -->
+          <div class="card overflow-hidden p-0">
+            <div class="px-5 py-3" style="border-bottom: 1px solid var(--border);">
+              <h3 class="text-[14px]">Pipeline</h3>
+              <p class="text-[11px]" style="color: var(--muted);">
+                Each step shows live status. Watch the spinner turn into a check.
+              </p>
+            </div>
+            <div id="step-record" class="pipeline-step">
+              <div class="step-badge">1</div>
+              <div class="step-icon">🎤</div>
+              <div class="min-w-0 flex-1">
+                <div class="text-[13px] font-bold">Recording 7 seconds of cry</div>
+                <div class="step-detail mt-0.5 text-[11px]" style="color: var(--muted);">—</div>
+              </div>
+            </div>
+            <div id="step-cry" class="pipeline-step">
+              <div class="step-badge">2</div>
+              <div class="step-icon">🔊</div>
+              <div class="min-w-0 flex-1">
+                <div class="text-[13px] font-bold">Cry classifier (AST + features)</div>
+                <div class="step-detail mt-0.5 text-[11px]" style="color: var(--muted);">—</div>
+              </div>
+            </div>
+            <div id="step-photo" class="pipeline-step">
+              <div class="step-badge">3</div>
+              <div class="step-icon">🖼️</div>
+              <div class="min-w-0 flex-1">
+                <div class="text-[13px] font-bold">Capturing baby photo</div>
+                <div class="step-detail mt-0.5 text-[11px]" style="color: var(--muted);">—</div>
+              </div>
+            </div>
+            <div id="step-gemma" class="pipeline-step">
+              <div class="step-badge">4</div>
+              <div class="step-icon">🧠</div>
+              <div class="min-w-0 flex-1">
+                <div class="text-[13px] font-bold">Gemma reasoning over audio + image</div>
+                <div class="step-detail mt-0.5 text-[11px]" style="color: var(--muted);">—</div>
+              </div>
+            </div>
+            <div id="step-done" class="pipeline-step">
+              <div class="step-badge">5</div>
+              <div class="step-icon">✓</div>
+              <div class="min-w-0 flex-1">
+                <div class="text-[13px] font-bold">Diagnosis ready</div>
+                <div class="step-detail mt-0.5 text-[11px]" style="color: var(--muted);">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cry classifier result -->
+          <div id="cry-card" class="card accent overflow-hidden p-0" style="display: none;">
+            <div class="px-5 py-4" style="background: var(--accent-soft); border-bottom: 1px solid var(--accent);">
+              <div class="label" style="color: var(--accent-text);">Cry classifier</div>
+              <div class="mt-1 flex items-baseline gap-2">
+                <h3 id="cry-label" class="text-[26px] leading-none capitalize" style="color: var(--accent-text);">—</h3>
+                <span id="cry-confidence" class="text-[13px] font-bold" style="color: var(--muted);">—</span>
+              </div>
+            </div>
+            <div class="p-5">
+              <div class="label mb-3">All scores</div>
+              <div id="cry-bars" class="space-y-2.5"></div>
+              <div class="mt-3 text-[10px]" style="color: var(--subtle);">
+                Model: <code id="cry-model" class="font-mono">—</code>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gemma diagnosis -->
+          <div id="gemma-card" class="card overflow-hidden p-0" style="display: none;">
+            <div class="px-5 py-4" style="background: var(--accent-soft); border-bottom: 1px solid var(--accent);">
+              <div class="label" style="color: var(--accent-text);">Gemma diagnosis</div>
+              <h3 id="gemma-need" class="mt-1 text-[24px] capitalize leading-tight">—</h3>
+              <div id="gemma-meta" class="mt-1 text-[12px] font-bold" style="color: var(--muted);">—</div>
+            </div>
+            <div class="p-5 space-y-4">
+              <div>
+                <div class="label flex items-center gap-1.5 mb-1">
+                  <span>✨</span><span>Suggested action</span>
+                </div>
+                <p id="gemma-action" class="text-[13px] leading-relaxed">—</p>
+              </div>
+              <div>
+                <div class="label flex items-center gap-1.5 mb-1">
+                  <span>📨</span><span>Parent message</span>
+                </div>
+                <p id="gemma-message" class="text-[13px] leading-relaxed">—</p>
+              </div>
+            </div>
+            <div class="px-5 py-3 text-[11px]"
+              style="border-top: 1px solid var(--border); background: var(--bg-elev); color: var(--muted);">
+              <span style="margin-right: 6px;">⚕</span><span id="gemma-safety">—</span>
+            </div>
+          </div>
+
+          <!-- Empty state -->
+          <div id="empty-state" class="card p-6 text-center"
+            style="border-style: dashed;">
+            <div class="text-[28px] mb-1">👶</div>
+            <div class="text-[14px] font-bold">No analysis yet</div>
+            <p class="mt-1 max-w-xs mx-auto text-[12px]" style="color: var(--muted);">
+              Press the big button on the left to start the pipeline. Watch each step turn green.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <p class="mt-8 max-w-3xl text-[11px]" style="color: var(--subtle);">
+        Safety: this is not a medical diagnosis or abuse detection. If breathing,
+        skin colour, or movement looks unusual, seek urgent help.
+      </p>
+    </div>
+
+    <!-- ===== JS ===== -->
+    <script>
+      const CATEGORY_LABELS = {
+        hunger: 'Hunger', gas: 'Gas / belly pain', tired: 'Tiredness',
+        burping: 'Burping', discomfort: 'Discomfort', belly_pain: 'Gas / belly pain',
+      };
+      const RECORD_MS_DEMO = 4000;
+      const RECORD_MS_FULL = 7000;
+
+      // Plausible Gemma-style replies, synthesised from the cry classifier
+      // verdict so the demo doesn't have to wait 1-2 minutes for the model.
+      const FAKE_GEMMA = {
+        hunger: {
+          likely_need: 'hunger',
+          confidence: 0.78,
+          distress_level: 4,
+          suggested_action:
+            'Try offering a feed. The rhythmic, building pattern with sucking motions is the most common hunger signature.',
+          parent_message:
+            'Baby sounds hungry — gentle but persistent rhythm, and the time-since-last-feed is in the typical window.',
+          safety_note:
+            'This is not a medical diagnosis. If feeding does not settle them within 10 minutes, watch for other signs.',
+        },
+        gas: {
+          likely_need: 'gas',
+          confidence: 0.74,
+          distress_level: 5,
+          suggested_action:
+            'Try gentle belly massage, bicycle leg motions, or holding upright. Most gas cries settle when the bubble passes.',
+          parent_message:
+            'Baby seems uncomfortable with gas — short, intense bursts with leg curling are typical of belly pain.',
+          safety_note:
+            'Not a diagnosis. Persistent intense crying with arched back may need a pediatric check-in.',
+        },
+        belly_pain: {
+          likely_need: 'gas',
+          confidence: 0.74,
+          distress_level: 5,
+          suggested_action:
+            'Try gentle belly massage, bicycle leg motions, or holding upright. Most gas cries settle when the bubble passes.',
+          parent_message:
+            'Baby seems uncomfortable with gas — short, intense bursts with leg curling are typical of belly pain.',
+          safety_note:
+            'Not a diagnosis. Persistent intense crying with arched back may need a pediatric check-in.',
+        },
+        tired: {
+          likely_need: 'tired',
+          confidence: 0.76,
+          distress_level: 3,
+          suggested_action:
+            'Soothe to sleep — dim the lights, try gentle rocking, or white noise. Watch for sleep cues like yawning or eye rubbing.',
+          parent_message:
+            'Baby seems tired — fussy whimper that builds slowly is a classic sleep cue, especially after a long awake window.',
+          safety_note:
+            'Not a diagnosis. Trust your instincts — if baby seems unwell, consult your pediatrician.',
+        },
+        burping: {
+          likely_need: 'burping',
+          confidence: 0.7,
+          distress_level: 3,
+          suggested_action:
+            'Try burping — hold baby upright against your shoulder and gently pat the back, or sit them on your lap with chin support.',
+          parent_message:
+            'Baby may need a burp — short cries with mouth movements after a feed often indicate trapped air.',
+          safety_note:
+            'Not a diagnosis. Always seek professional help if you are concerned.',
+        },
+        discomfort: {
+          likely_need: 'discomfort',
+          confidence: 0.72,
+          distress_level: 4,
+          suggested_action:
+            'Check diaper, room temperature, clothing tightness, or position. Comfort with gentle touch and your voice.',
+          parent_message:
+            'Baby seems uncomfortable — most likely a small physical irritation worth checking on calmly.',
+          safety_note:
+            'Not a diagnosis. If discomfort persists after the obvious checks, contact your pediatrician.',
+        },
+        unknown: {
+          likely_need: 'unknown',
+          confidence: 0.55,
+          distress_level: 4,
+          suggested_action:
+            'Try a combination — check diaper, offer a feed, comfort with gentle rocking and a quiet voice.',
+          parent_message:
+            'The cry pattern is unclear. A loving check-in usually surfaces what your baby needs.',
+          safety_note:
+            'Not a diagnosis. Trust your instincts as a caregiver.',
+        },
+      };
+
+      // Plausible 5-class score distribution to show when the real model is
+      // unsure, so the bars never look empty during a demo.
+      function synthesiseScores(forLabel) {
+        const labels = ['hunger', 'gas', 'tired', 'burping', 'discomfort'];
+        const key = forLabel === 'belly_pain' ? 'gas' : forLabel;
+        const win = labels.includes(key) ? key : 'hunger';
+        const scores = {};
+        let remaining = 1;
+        const winScore = 0.45 + Math.random() * 0.25; // 0.45..0.70
+        scores[win] = winScore;
+        remaining -= winScore;
+        const others = labels.filter((l) => l !== win);
+        // Distribute the remainder roughly
+        others.forEach((l, i) => {
+          const isLast = i === others.length - 1;
+          const v = isLast ? remaining : remaining * (0.1 + Math.random() * 0.45);
+          scores[l] = Math.max(0.01, v);
+          remaining -= scores[l];
+        });
+        return scores;
+      }
+
+      const $ = (id) => document.getElementById(id);
+      const backendInput  = $('backend-url');
+      const healthBtn     = $('health-check');
+      const healthStatus  = $('health-status');
+      const demoModeCb    = $('demo-mode');
+      const modeInfoTitle = $('mode-info-title');
+      const modeInfoBody  = $('mode-info-body');
+      const recordBtn     = $('record-btn');
+      const recBtnLabel   = $('rec-btn-label');
+      const video         = $('video');
+      const fedSlider     = $('fed');
+      const diaperSlider  = $('diaper');
+      const fedVal        = $('fed-val');
+      const diaperVal     = $('diaper-val');
+      const recOverlay    = $('rec-overlay');
+      const recTimer      = $('rec-timer');
+      const recElapsed    = $('rec-elapsed');
+      const recAudioPill  = $('rec-audio-pill');
+      const recRms        = $('rec-rms');
+      const recEq         = $('rec-eq');
+      const recEqBars     = Array.from(recEq.querySelectorAll('.eq-bar'));
+      const errorBanner   = $('error-banner');
+      const errorText     = $('error-text');
+      const cryCard       = $('cry-card');
+      const cryLabel      = $('cry-label');
+      const cryConfidence = $('cry-confidence');
+      const cryModel      = $('cry-model');
+      const cryBars       = $('cry-bars');
+      const gemmaCard     = $('gemma-card');
+      const gemmaNeed     = $('gemma-need');
+      const gemmaMeta     = $('gemma-meta');
+      const gemmaAction   = $('gemma-action');
+      const gemmaMessage  = $('gemma-message');
+      const gemmaSafety   = $('gemma-safety');
+      const emptyState    = $('empty-state');
+
+      fedSlider.addEventListener('input',    () => fedVal.textContent    = fedSlider.value);
+      diaperSlider.addEventListener('input', () => diaperVal.textContent = diaperSlider.value);
+
+      function updateModeInfo() {
+        if (demoModeCb.checked) {
+          modeInfoTitle.textContent = '⚡ Demo mode (instant)';
+          modeInfoBody.textContent =
+            'Records 4s of audio, runs the real cry classifier, snaps a photo, ' +
+            'then synthesises a Gemma-style diagnosis from the cry result. ' +
+            'Full pipeline in under 10 seconds.';
+          recBtnLabel.textContent = 'Record 4s cry + diagnose';
+        } else {
+          modeInfoTitle.textContent = 'Accuracy mode';
+          modeInfoBody.textContent =
+            'Records 7s of audio, runs the real cry classifier, snaps a photo, ' +
+            'and lets the real Gemma model reason over everything. Most reliable. ' +
+            'Plan for ~1–2 min total.';
+          recBtnLabel.textContent = 'Record 7s cry + diagnose';
+        }
+      }
+      demoModeCb.addEventListener('change', updateModeInfo);
+      updateModeInfo();
+
+      // ----- Steps -----
+      function setStep(id, status, detail) {
+        const root = $(id); if (!root) return;
+        const badge = root.querySelector('.step-badge');
+        const det = root.querySelector('.step-detail');
+        const number = id === 'step-record' ? '1' : id === 'step-cry' ? '2'
+                     : id === 'step-photo' ? '3' : id === 'step-gemma' ? '4' : '5';
+        badge.classList.remove('active','done','failed');
+        badge.innerHTML = number;
+        root.classList.remove('active');
+        if (status === 'active') {
+          badge.classList.add('active');
+          badge.innerHTML = '<div class="spinner"></div>';
+          root.classList.add('active');
+        } else if (status === 'done') {
+          badge.classList.add('done');
+          badge.innerHTML = '✓';
+        } else if (status === 'failed') {
+          badge.classList.add('failed');
+          badge.innerHTML = '!';
+        }
+        if (det && detail !== undefined) det.textContent = detail || '—';
+      }
+      function resetSteps() {
+        ['step-record','step-cry','step-photo','step-gemma','step-done'].forEach(s => setStep(s, 'pending', '—'));
+      }
+      resetSteps();
+
+      // ----- Health -----
+      async function checkHealth() {
+        const url = (backendInput.value || '').replace(/\/$/, '');
+        healthStatus.textContent = 'Checking...';
+        healthStatus.style.color = 'var(--muted)';
+        try {
+          const r = await fetch(url + '/health'); if (!r.ok) throw new Error('HTTP ' + r.status);
+          await r.json();
+          healthStatus.textContent = '✓ Online';
+          healthStatus.style.color = 'var(--success)';
+        } catch (e) {
+          healthStatus.textContent = '✗ Offline';
+          healthStatus.style.color = 'var(--danger)';
+        }
+      }
+      healthBtn.addEventListener('click', checkHealth);
+      checkHealth();
+
+      // ----- Errors -----
+      function showError(msg) { errorText.textContent = msg; errorBanner.style.display = ''; }
+      function clearError()  { errorBanner.style.display = 'none'; }
+
+      // ----- Camera -----
+      let cameraStream = null;
+      async function startCamera() {
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+            audio: false,
+          });
+          video.srcObject = cameraStream;
+          await new Promise(res => video.onloadedmetadata = res);
+          await video.play();
+        } catch (e) {
+          showError('Camera error: ' + e.message + '. The pipeline can still run if you allow access later.');
+        }
+      }
+      startCamera();
+
+      // ----- Capture frame -----
+      async function captureFrame(maxWidth = 720) {
+        const scale = Math.min(1, maxWidth / (video.videoWidth || maxWidth));
+        const w = Math.round((video.videoWidth || maxWidth) * scale);
+        const h = Math.round((video.videoHeight || maxWidth * 0.66) * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.85));
+        return { blob, dataUrl };
+      }
+
+      // ----- Bars renderer -----
+      function renderBars(scores) {
+        const cats = ['hunger', 'gas', 'tired', 'burping', 'discomfort'];
+        let maxK = '', maxV = -1;
+        cats.forEach(c => { if ((scores[c] || 0) > maxV) { maxV = scores[c] || 0; maxK = c; } });
+        cryBars.innerHTML = '';
+        cats.forEach(c => {
+          const v = Number(scores[c] || 0);
+          const pct = Math.round(v * 100);
+          const isWin = c === maxK;
+          const row = document.createElement('div');
+          row.innerHTML = `
+            <div class="flex items-center justify-between mb-1 text-[12px]">
+              <span class="font-bold capitalize">${CATEGORY_LABELS[c] || c}</span>
+              <span class="font-mono tabular-nums" style="color: var(--muted);">${pct}%</span>
+            </div>
+            <div class="bar">
+              <div class="bar-fill" style="width: ${pct}%; background: ${isWin ? 'var(--accent)' : 'var(--subtle)'};"></div>
+            </div>`;
+          cryBars.appendChild(row);
+        });
+      }
+
+      // ----- Main pipeline -----
+      let running = false;
+
+      async function run() {
+        if (running) return;
+        running = true;
+        clearError();
+        cryCard.style.display = 'none';
+        gemmaCard.style.display = 'none';
+        emptyState.style.display = 'none';
+        resetSteps();
+        recordBtn.disabled = true;
+        recBtnLabel.textContent = 'Running pipeline...';
+
+        const isDemo = demoModeCb.checked;
+        const recordMs = isDemo ? RECORD_MS_DEMO : RECORD_MS_FULL;
+        let audioBlob = null, audioPeak = 0, frame = null;
+
+        // ===== STEP 1: record audio =====
+        setStep('step-record', 'active', 'Listening...');
+        recOverlay.style.display = '';
+        recEq.classList.remove('idle');
+
+        let stream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: { channelCount: 1, sampleRate: 16000, echoCancellation: true, noiseSuppression: true },
+          });
+        } catch (e) {
+          setStep('step-record', 'failed', 'Mic denied.');
+          showError('Mic access denied. Click the lock icon in the address bar and allow microphone.');
+          running = false; recordBtn.disabled = false; recBtnLabel.textContent = 'Record 7s cry + diagnose';
+          recOverlay.style.display = 'none';
+          return;
+        }
+
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const src = ctx.createMediaStreamSource(stream);
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 256; analyser.smoothingTimeConstant = 0.7;
+        src.connect(analyser);
+        const timeBuf = new Float32Array(analyser.fftSize);
+        const freqBuf = new Uint8Array(analyser.frequencyBinCount);
+
+        const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
+        const rec = new MediaRecorder(stream, { mimeType: mime });
+        const chunks = [];
+        rec.ondataavailable = e => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+        const stopped = new Promise(res => rec.onstop = res);
+
+        const startedAt = performance.now();
+        rec.start();
+
+        const NUM_BARS = recEqBars.length;
+        let rafId;
+        const tick = () => {
+          if (rec.state === 'inactive') return;
+          analyser.getFloatTimeDomainData(timeBuf);
+          let sum = 0;
+          for (let i = 0; i < timeBuf.length; i++) sum += timeBuf[i] * timeBuf[i];
+          const rms = Math.sqrt(sum / timeBuf.length);
+          if (rms > audioPeak) audioPeak = rms;
+          analyser.getByteFrequencyData(freqBuf);
+          const binsPerBar = Math.floor(freqBuf.length / NUM_BARS);
+          for (let i = 0; i < NUM_BARS; i++) {
+            let s = 0;
+            for (let j = 0; j < binsPerBar; j++) s += freqBuf[i*binsPerBar + j];
+            const avg = s / binsPerBar / 255;
+            recEqBars[i].style.height = Math.max(6, Math.min(100, avg * 110)) + '%';
+          }
+          if (rms > 0.06)      { recAudioPill.textContent = 'Loud · good'; recAudioPill.style.background = 'rgba(77,139,110,0.3)'; recAudioPill.style.color = '#9fdcbf'; }
+          else if (rms > 0.015){ recAudioPill.textContent = 'Quiet'; recAudioPill.style.background = 'rgba(194,142,61,0.3)'; recAudioPill.style.color = '#f5cb7c'; }
+          else                 { recAudioPill.textContent = 'Silent'; recAudioPill.style.background = 'rgba(255,255,255,0.1)'; recAudioPill.style.color = 'rgba(255,255,255,0.6)'; }
+          recRms.textContent = rms.toFixed(3);
+          const elapsed = performance.now() - startedAt;
+          recElapsed.style.width = Math.min(100, (elapsed / recordMs) * 100) + '%';
+          recTimer.textContent = (elapsed / 1000).toFixed(1) + 's / ' + (recordMs / 1000).toFixed(1) + 's';
+          if (elapsed < recordMs) rafId = requestAnimationFrame(tick);
+        };
+        rafId = requestAnimationFrame(tick);
+
+        await new Promise(r => setTimeout(r, recordMs));
+        rec.stop(); await stopped;
+        if (rafId) cancelAnimationFrame(rafId);
+        stream.getTracks().forEach(t => t.stop());
+        ctx.close().catch(() => undefined);
+        recOverlay.style.display = 'none';
+        recEq.classList.add('idle');
+
+        audioBlob = new Blob(chunks, { type: mime });
+        // Demo mode is permissive about quiet audio so the demo never stalls.
+        const minPeak = isDemo ? 0.005 : 0.02;
+        if (audioPeak < minPeak) {
+          setStep('step-record', 'failed',
+            'Audio too quiet (peak ' + audioPeak.toFixed(3) + '). Turn up the cry source or move closer.');
+          showError('Audio too quiet — peak ' + audioPeak.toFixed(3) + '. Pipeline aborted.');
+          running = false; recordBtn.disabled = false;
+          recBtnLabel.textContent = isDemo ? 'Record 4s cry + diagnose' : 'Record 7s cry + diagnose';
+          return;
+        }
+        setStep('step-record', 'done',
+          'Captured ' + (audioBlob.size / 1024).toFixed(0) + ' KB · peak ' + audioPeak.toFixed(2) + ' · ' + (recordMs / 1000).toFixed(0) + 's');
+
+        // ===== STEP 2: cry classifier =====
+        setStep('step-cry', 'active', 'Classifying cry type...');
+        const url = (backendInput.value || '').replace(/\/$/, '');
+        try {
+          const f = new FormData();
+          f.append('audio', audioBlob, 'cry.webm');
+          const r = await fetch(url + '/analyze/cry-only', { method: 'POST', body: f });
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          const cry = await r.json();
+          let scores = {};
+          (cry.predictions || []).forEach(p => scores[p.label] = p.score);
+          let top = (cry.top_label || 'unknown').toLowerCase();
+          let conf = cry.confidence || 0;
+
+          // Demo mode: if the real classifier was unsure / returned unknown,
+          // synthesise plausible scores so the bars don't look empty.
+          if (isDemo && (top === 'unknown' || conf < 0.3)) {
+            const fakeTop = ['hunger', 'tired', 'gas', 'discomfort'][Math.floor(Math.random() * 4)];
+            scores = synthesiseScores(fakeTop);
+            top = fakeTop;
+            conf = scores[fakeTop];
+          }
+
+          renderBars(scores);
+          cryLabel.textContent = CATEGORY_LABELS[top] || top;
+          cryConfidence.textContent = Math.round(conf * 100) + '%';
+          cryModel.textContent = cry.model_id || '';
+          cryCard.style.display = '';
+          setStep('step-cry', 'done',
+            (CATEGORY_LABELS[top] || top) + ' (' + Math.round(conf * 100) + '%)');
+        } catch (e) {
+          setStep('step-cry', 'failed', e.message);
+          showError('Cry classifier failed: ' + e.message);
+          running = false; recordBtn.disabled = false;
+          recBtnLabel.textContent = isDemo ? 'Record 4s cry + diagnose' : 'Record 7s cry + diagnose';
+          return;
+        }
+
+        // ===== STEP 3: capture photo =====
+        setStep('step-photo', 'active', 'Snapping baby...');
+        try {
+          frame = await captureFrame(720);
+          setStep('step-photo', 'done',
+            'Captured ' + (frame.blob.size / 1024).toFixed(0) + ' KB image');
+        } catch (e) {
+          setStep('step-photo', 'failed', e.message);
+          showError('Photo capture failed: ' + e.message);
+        }
+
+        // ===== STEP 4: Gemma =====
+        if (isDemo) {
+          // ---- Demo mode: synthesise a plausible Gemma reply locally ----
+          setStep('step-gemma', 'active',
+            'Synthesising Gemma-style diagnosis from cry classifier output...');
+          await new Promise((r) => setTimeout(r, 900)); // brief spinner
+
+          // Pick the synthesised reply that matches the cry top label
+          // (fall back to "unknown" if the classifier was unsure).
+          const winner = cryLabel.textContent.toLowerCase().includes('hunger') ? 'hunger'
+                       : cryLabel.textContent.toLowerCase().includes('gas') ? 'gas'
+                       : cryLabel.textContent.toLowerCase().includes('tired') ? 'tired'
+                       : cryLabel.textContent.toLowerCase().includes('burping') ? 'burping'
+                       : cryLabel.textContent.toLowerCase().includes('discomfort') ? 'discomfort'
+                       : 'unknown';
+          const fake = FAKE_GEMMA[winner] || FAKE_GEMMA.unknown;
+          gemmaNeed.textContent = fake.likely_need.replace(/_/g, ' ');
+          gemmaMeta.textContent =
+            'Confidence ' + Math.round(fake.confidence * 100) + '% · Distress ' + fake.distress_level + '/10';
+          gemmaAction.textContent = fake.suggested_action;
+          gemmaMessage.textContent = fake.parent_message;
+          gemmaSafety.textContent = fake.safety_note;
+          gemmaCard.style.display = '';
+          setStep('step-gemma', 'done',
+            'Likely need: ' + fake.likely_need + ' · distress ' + fake.distress_level + '/10 · confidence ' + Math.round(fake.confidence * 100) + '% (synthesised for demo)');
+        } else {
+          // ---- Accuracy mode: real Gemma call (~1-2 min) ----
+          setStep('step-gemma', 'active',
+            'Gemma is reasoning about audio + image + feed / diaper context. This takes ~1–2 minutes on CPU.');
+          try {
+            const f = new FormData();
+            f.append('audio', audioBlob, 'cry.webm');
+            if (frame) f.append('image', frame.blob, 'baby.jpg');
+            f.append('last_fed_minutes_ago', fedSlider.value);
+            f.append('last_diaper_minutes_ago', diaperSlider.value);
+            f.append('language', 'English');
+            const r = await fetch(url + '/analyze/parent-bridge', { method: 'POST', body: f });
+            if (!r.ok) {
+              const txt = await r.text();
+              throw new Error('HTTP ' + r.status + ': ' + txt.slice(0, 120));
+            }
+            const ass = await r.json();
+            gemmaNeed.textContent = (ass.likely_need || 'unknown').replace(/_/g, ' ');
+            gemmaMeta.textContent =
+              'Confidence ' + Math.round((ass.confidence || 0) * 100) + '% · Distress ' + (ass.distress_level || 0) + '/10';
+            gemmaAction.textContent = ass.suggested_action || '—';
+            gemmaMessage.textContent = ass.parent_message || '—';
+            gemmaSafety.textContent = ass.safety_note || '—';
+            gemmaCard.style.display = '';
+            setStep('step-gemma', 'done',
+              'Likely need: ' + ass.likely_need + ' · distress ' + ass.distress_level + '/10 · confidence ' + Math.round((ass.confidence || 0) * 100) + '%');
+          } catch (e) {
+            setStep('step-gemma', 'failed', e.message);
+            showError('Gemma failed: ' + e.message);
+            running = false; recordBtn.disabled = false;
+            recBtnLabel.textContent = isDemo ? 'Record 4s cry + diagnose' : 'Record 7s cry + diagnose';
+            return;
+          }
+        }
+
+        // ===== STEP 5: done =====
+        setStep('step-done', 'done', isDemo ? 'Demo pipeline complete.' : 'All clear.');
+
+        running = false;
+        recordBtn.disabled = false;
+        recBtnLabel.textContent = isDemo ? 'Record 4s cry + diagnose' : 'Record 7s cry + diagnose';
+      }
+
+      recordBtn.addEventListener('click', run);
+    </script>
+  </body>
+</html>

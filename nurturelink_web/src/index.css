@@ -1,0 +1,214 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --color-bg: #FAF9F5;
+  --color-bg-sidebar: #F0EEE6;
+  --color-bg-card: #FFFFFF;
+  --color-bg-elevated: #FFFFFF;
+  --color-text-primary: #3D3D3A;
+  --color-text-muted: #737269;
+  --color-text-subtle: #9A9890;
+  --color-border: #E8E6DE;
+  --color-border-strong: #C8C5BC;
+  --color-accent: #D97757;
+  --color-accent-hover: #C45F3B;
+  --color-accent-soft: #FAEAD8;
+  --color-accent-text: #8C3F1E;
+  --color-success: #4D8B6E;
+  --color-warning: #C28E3D;
+  --color-danger: #BE5A3E;
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Inter', sans-serif;
+
+  --radius-card: 16px;
+  --radius-input: 12px;
+  --radius-pill: 999px;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-bg: #262624;
+      --color-bg-sidebar: #1F1E1D;
+      --color-bg-card: #30302E;
+      --color-bg-elevated: #383735;
+      --color-text-primary: #FAF9F5;
+      --color-text-muted: #A8A6A0;
+      --color-text-subtle: #807E78;
+      --color-border: #3E3D3B;
+      --color-border-strong: #565452;
+      --color-accent-soft: #3A2A22;
+      --color-accent-text: #F5C9AF;
+      color-scheme: dark;
+    }
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.55;
+    letter-spacing: -0.005em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+
+  button {
+    font-family: inherit;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-border-strong);
+  }
+}
+
+@utility card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  transition: border-color 200ms ease, transform 200ms ease;
+}
+
+@utility card-hover {
+  &:hover {
+    border-color: var(--color-border-strong);
+    transform: translateY(-1px);
+  }
+}
+
+@utility btn-primary {
+  background: var(--color-accent);
+  color: white;
+  border-radius: var(--radius-input);
+  padding: 12px 20px;
+  font-weight: 600;
+  transition: background 150ms ease;
+  cursor: pointer;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  &:hover {
+    background: var(--color-accent-hover);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+@utility btn-secondary {
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-input);
+  padding: 12px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  &:hover {
+    border-color: var(--color-border-strong);
+    background: var(--color-bg-elevated);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+@utility chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+}
+
+@utility chip-accent {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  color: var(--color-accent-text);
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-accent) 40%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 12px color-mix(in oklch, var(--color-accent) 0%, transparent);
+  }
+}
+
+@keyframes nl-ring-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  80% {
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+
+@keyframes nl-breathe {
+  0%, 100% {
+    transform: scale(1.04);
+  }
+  50% {
+    transform: scale(1.07);
+  }
+}
+
+@utility pulse-glow {
+  animation: pulse-glow 1.4s ease-in-out infinite;
+}
